@@ -6,15 +6,19 @@ import { requireAuth } from '../../util/auth';
 
 const router = express.Router();
 router.get('/filteredimage', requireAuth, async (req, res) => {
-    const image_url = decodeURIComponent(req.query.image_url);
+    const image_url: string = decodeURIComponent(req.query.image_url);
     // url 
-    console.log(image_url)
-    if (!validUrl.isUri(image_url)) return res.status(400).end();
-    const imagePath = await filterImageFromURL(image_url);
-    res.sendFile(imagePath, () => {
-
-        deleteLocalFiles([imagePath]);
-    });
+    try {
+        if (!validUrl.isUri(image_url)) return res.status(400).send('image_url is not valid url');
+        const imagePath: string = await filterImageFromURL(image_url);
+        res.status(200).sendFile(imagePath, () => {
+            deleteLocalFiles([imagePath]);
+        });
+    } catch(err){
+        res.status(500).json({
+            messages: "Error processing file"
+        })
+    }
     
 })
 
